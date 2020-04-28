@@ -2,6 +2,17 @@
 #include <stdlib.h>
 #include <string.h>
 
+void searchLines(char *searchTerm, FILE *stream) {
+    char *line = NULL;
+    size_t size = sizeof(&line);
+    while(getline(&line, &size, stream) != -1) {
+        char *found = strstr(line, searchTerm);
+        if (found != NULL) {
+            printf("%s", line);
+        }
+    }
+}
+
 int main(int argc, char *argv[]) {
     // no command line arguments, then print this
     if (argc < 2) {
@@ -17,14 +28,7 @@ int main(int argc, char *argv[]) {
 
     // if search term given, but no file selected
     if (argc == 2) {
-        char *line = NULL;
-        size_t size = sizeof(&line);
-        while(getline(&line, &size, stdin) != -1) {
-            char *found = strstr(line, searchTerm);
-            if (found != NULL) {
-                printf("%s", line);
-            }
-        }
+        searchLines(searchTerm, stdin);
     }
 
     // find search terms if files are provided
@@ -34,14 +38,7 @@ int main(int argc, char *argv[]) {
             printf("wgrep: cannot open file\n");
             exit(1);
         }
-        char *line = NULL;
-        size_t size = sizeof(&line);
-        while(getline(&line, &size , fp) != -1) {
-            char *found = strstr(line, searchTerm);
-            if (found != NULL) {
-                printf("%s", line);
-            }
-        }
+        searchLines(searchTerm, fp);
         fclose(fp);
     }
     return 0;
