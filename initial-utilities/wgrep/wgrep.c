@@ -8,6 +8,8 @@ int main(int argc, char *argv[]) {
         printf("wgrep: searchterm [file ...]\n");
         return 1;
     }
+
+    // if search term is empty string, return
     char *searchTerm = argv[1];
     if (strcmp(searchTerm,"") == 0) {
         return 0;
