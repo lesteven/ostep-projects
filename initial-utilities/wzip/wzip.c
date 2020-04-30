@@ -3,12 +3,13 @@
 #include <string.h>
 
 int countDigits(int num) {
-    int digits = 1;
-    num = num/10;
-    while (num > 0) {
+    int digits = 0;
+
+    do {
         num = num/10;
         digits++;
-    }
+    } while (num > 0);
+
     return digits;
 }
 
