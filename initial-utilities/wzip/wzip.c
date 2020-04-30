@@ -2,19 +2,36 @@
 #include <stdlib.h>
 #include <string.h>
 
+int countDigits(int num) {
+    int digits = 1;
+    num = num/10;
+    while (num > 0) {
+        num = num/10;
+        digits++;
+    }
+    return digits;
+}
 
-char *compressLine(char *line) {
-    printf("%s",line);
-    char letter = letter[0];
+void compressLine(char *line, char compressed[]) {
+    char letter = line[0];
     int count = 1;
+    int currIndex = 0;
     for (int i = 1; i < strlen(line); i++) {
         if (line[i] == letter) {
             count++;
         } else {
-
+            int digits = countDigits(count);
+            char digitStr[digits+1];
+            sprintf(digitStr, "%d", count);
+            // printf("%d%c-%d ", digits, letter, count);
+            for (int j = 0; j < digits; j++) {
+                compressed[currIndex++] = digitStr[j];
+            }
+            compressed[currIndex++] = letter;
+            letter = line[i];
+            count = 1;
         }
     }
-
 }
 
 int main(int argc, char *argv[]) {
@@ -27,7 +44,11 @@ int main(int argc, char *argv[]) {
     char *line = NULL;
     size_t size = sizeof(&line);
     while(getline(&line, &size , fp) != -1) {
-        printf("==========\n");
+        int maxLen = strlen(line)*2 + 1;
+        char compressed[maxLen];
+        memset(compressed, '\0', maxLen);
+        compressLine(line, compressed);
+        printf("%s\n", compressed);
     }
     fclose(fp);
     return 0;
