@@ -9,13 +9,14 @@ int main(int argc, char *argv[]) {
     }
 
     int count = 0;
-    char letter = -1;
-    char curr_char = -1;
+    // 0 is null character in ascii
+    char letter = 0;
+    char curr_char = 0;
 
     for (int i = 1; i < argc; i++) {
         FILE *fp = fopen(argv[i], "r");
         while ((curr_char = fgetc(fp)) != EOF) {
-            if (letter == -1) {
+            if (letter == 0) {
                 letter = curr_char;
                 count++;
             } else if (curr_char != letter) {
