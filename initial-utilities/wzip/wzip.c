@@ -2,78 +2,37 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-void compressLine(char *line, char compressed[]) {
-    int index = 0;
-    while (index < strlen(line)) {
-        char letter = line[index];
-        int count = 1;
-        index++;
-        while (letter == line[index]) {
-            index++;
-            count++;
-        }
-        if (letter != '\0' && count != 1) {
-            fwrite(&count, sizeof(int), 1, stdout);
-            printf("%c", letter);
-            //printf("%c %d ", letter, count);
-        }
-    }
-    //printf("\n");
-}
-
-void createTempFile(int argc, char *argv[], char *newFile) {
-    FILE *write = fopen(newFile, "w");
-    for (int i = 1; i < argc; i++) {
-        char *filename = argv[i];
-        FILE *fp = fopen(filename, "r");
-
-        char *line = NULL;
-        size_t size = sizeof(&line);
-
-        while(getline(&line, &size , fp) != -1) {
-            fputs(line,write);
-        }
-        fclose(fp);
-    }
-    fclose(write);
-
-}
-
 int main(int argc, char *argv[]) {
     if (argc < 2) {
         printf("wzip: file1 [file2 ...]\n");
         exit(1);
     }
-    /*
-    char *name = argv[1];
-    char *temp = "_temp";
-    char filename[strlen(name) + strlen(temp)];
-    strcpy(filename, name);
-    strcat(filename, temp);
-    */
-    char *filename = "_tmp.txt";
-    createTempFile(argc, argv, filename);
 
-    FILE *fp = fopen(filename, "r");
+    int count = 0;
+    char letter = -1;
+    char curr_char = -1;
 
-    if (fp == NULL) {
-        printf("wzip: cannot open file\n");
-        exit(1);
+    for (int i = 1; i < argc; i++) {
+        FILE *fp = fopen(argv[i], "r");
+        while ((curr_char = fgetc(fp)) != EOF) {
+            if (letter == -1) {
+                letter = curr_char;
+                count++;
+            } else if (curr_char != letter) {
+                fwrite(&count, sizeof(int), 1, stdout);
+                printf("%c", letter);
+                count = 1;
+                letter = curr_char;
+            } else {
+                count++;
+            }
+        }
+        fclose(fp);
     }
 
-    char *line = NULL;
-    size_t size = sizeof(&line);
-
-    while(getline(&line, &size , fp) != -1) {
-        int maxLen = strlen(line)*2 + 1;
-        char compressed[maxLen];
-        memset(compressed, '\0', maxLen);
-
-        //printf("%s", line);
-        compressLine(line, compressed);
+    if (count > 0) {
+        fwrite(&count, sizeof(int), 1, stdout);
+        printf("%c", letter);
     }
-
-    fclose(fp);
     return 0;
 }
