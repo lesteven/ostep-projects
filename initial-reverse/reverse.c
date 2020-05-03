@@ -15,6 +15,12 @@ char *getFileName(char *file) {
     return word == NULL? file: word;
 }
 
+void freeFile(char *name, char *file) {
+    if (strcmp(name, file) == 0) {
+        free(name);
+    }
+}
+
 int main(int argc, char *argv[]) {
     if (argc > 3) {
         fprintf(stderr, "%s\n", "usage: reverse <input> <output>");
@@ -25,6 +31,8 @@ int main(int argc, char *argv[]) {
         char *second = getFileName(argv[2]);
         if (strcmp(first, second) == 0) {
             fprintf(stderr, "%s\n", "reverse: input and output file must differ");
+            freeFile(first, argv[1]);
+            freeFile(second, argv[2]);
             exit(1);
         }
     }
