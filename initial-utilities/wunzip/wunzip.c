@@ -12,13 +12,13 @@ int main(int argc, char *argv[]) {
         FILE *fp = fopen(argv[i], "r");
         while (1) {
             int count = 0;
-            fread(&count, 4, 1, fp);
+            fread(&count, sizeof(int), 1, fp);
 
             if (count == 0) {
                 break;
             }
-            int letter = 0;
-            fread(&letter, 1, 1, fp);
+
+            char letter = fgetc(fp);
             for (int i = 0; i < count; i++) {
                 printf("%c", letter);
             }
