@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+// get file name from argv
 char *getFileName(char *file) {
     char *word = NULL;
     int len = strlen(file);
@@ -15,6 +16,7 @@ char *getFileName(char *file) {
     return word == NULL? file: word;
 }
 
+// free file from malloc later
 void freeFile(char *name, char *file) {
     if (strcmp(name, file) == 0) {
         free(name);
@@ -26,6 +28,7 @@ typedef struct Node {
     struct Node *next;
 } Node;
 
+// create stack and append to file
 void reverse(char *argv[], FILE *read_file, FILE *write_file) {
     char *line = NULL;
     size_t size = 0;
@@ -70,7 +73,6 @@ int main(int argc, char *argv[]) {
     if (argc == 1) {
         //reverse stdin
         reverse(argv, stdin, stdout);
-        return 0;
     } else {
         FILE *read_file = fopen(argv[1], "r");
         if (read_file == NULL) {
