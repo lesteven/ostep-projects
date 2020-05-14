@@ -56,7 +56,7 @@ void executeLine(FILE *stream) {
         */
         char *files[] = { split, NULL };
         pid_t fork_id = fork();
-
+        //printf("starting %d\n", (int) getpid());
         if (fork_id < 0) {
             // error
             char error_message[30] = "An error has occurred\n";
@@ -64,11 +64,12 @@ void executeLine(FILE *stream) {
         } else if (fork_id == 0) {
             // child process created successfully
             execv(command, files);
-        } else {
-            // parent path
-            wait(NULL);
         }
     }
+    // wait for children to be done and return to parent
+    while (wait(NULL) != -1) {
+    }
+
 }
 
 int main(int argc, char *argv[]) {
