@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 char pathOne[] = "/bin";
 char pathTwo[] = "/usr/bin";
@@ -54,7 +55,19 @@ void executeLine(FILE *stream) {
         //printf("%s %ld\n", foo, strlen(foo));
         */
         char *files[] = { split, NULL };
-        execv(command, files);
+        pid_t fork_id = fork();
+
+        if (fork_id < 0) {
+            // error
+            char error_message[30] = "An error has occurred\n";
+            write(STDERR_FILENO, error_message, strlen(error_message));
+        } else if (fork_id == 0) {
+            // child process created successfully
+            execv(command, files);
+        } else {
+            // parent path
+            wait(NULL);
+        }
     }
 }
 
