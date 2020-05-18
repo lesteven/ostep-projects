@@ -4,6 +4,11 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
+typedef struct Node {
+    char *value;
+    struct Node *next;
+} Node;
+
 char pathOne[] = "/bin";
 char pathTwo[] = "/usr/bin";
 char fslash[] = "/";
@@ -25,8 +30,36 @@ void trimStr(char str[]) {
     for (int i = strlen(str)-1; i >=0; i--) {
         if (str[i] == '\n') {
             str[i] = '\0';
+            break;
         }
     }
+}
+
+void createLinkedList(char *command, Node *sentinel, int *size) {
+    char *sep = NULL;
+    *size = 0;
+    while (command != NULL) {
+        sep = strsep(&command, " ");
+        if (strlen(sep) == 0) {
+            continue;
+        }
+        //Node next = Node { sep };
+        *size += 1;
+        Node *newNode = malloc(sizeof(*sentinel));
+        newNode->value = sep;
+        printf("%s %p\n", newNode->value, &newNode);
+        sentinel->next = newNode;
+        sentinel = newNode;
+    }
+}
+void printList(Node *node, int size) {
+    node = node->next;
+    while (node != NULL) {
+        printf("%s\n", node->value);
+        node = node->next;
+    }
+    printf("size %d\n", size);
+
 }
 
 void executeLine(FILE *stream) {
@@ -34,26 +67,30 @@ void executeLine(FILE *stream) {
     size_t size = 0;
     getline(&line, &size, stream);
     char *split = NULL;
+
     while (line != NULL) {
         split = strsep(&line, "&");
+
         trimStr(split);
+        // created linked list for commands and get size
+        Node sentinel = { "" };
+        int size = 0;
+        createLinkedList(split, &sentinel, &size);
+        printList(&sentinel, size);
+
+
+        // once get command, if built in command
+        // call own function, else execute from bin
+
+        // iterate through paths, if successful
+        // execute binaries
         // +1 for '\0' character
         char command[strlen(pathOne)+strlen(fslash)+strlen(split)+1];
         getCommand(command, pathOne, split);
 
-        /*
-        int size = strlen(pathOne)+strlen(fslash)+strlen(split);
-        printf("%s %d\n", command, size);
-        int test = access(command, X_OK);
 
-        char *foo = "/bin/ls";
-        int test2 = access(foo, X_OK);
-        int cmp = strcmp(foo, command);
-        //printf("run: %s %d %d %d %d\n", command, test, test2, cmp, size);
+        // int available = access(command, X_OK);
 
-        //printf("%s %ld\n", command, strlen(command));
-        //printf("%s %ld\n", foo, strlen(foo));
-        */
         char *files[] = { split, NULL };
         pid_t fork_id = fork();
         //printf("starting %d\n", (int) getpid());
