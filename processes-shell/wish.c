@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <stdbool.h>
 
 typedef struct Node {
     char *value;
@@ -18,12 +19,6 @@ void getCommand(char *command, char *path, char *split) {
     strncpy(command, path, strlen(path)+1);
     strncat(command, fslash, strlen(fslash));
     strncat(command, split, strlen(split));
-    /*
-    for (int i = 0; i < strlen(command); i++) {
-        printf("%c %d %d\n", command[i], command[i], i);
-    }
-    printf("==============");
-    */
 }
 
 void trimStr(char str[]) {
@@ -47,19 +42,31 @@ void createLinkedList(char *command, Node *sentinel, int *size) {
         *size += 1;
         Node *newNode = malloc(sizeof(*sentinel));
         newNode->value = sep;
-        printf("%s %p\n", newNode->value, &newNode);
         sentinel->next = newNode;
         sentinel = newNode;
     }
 }
+
 void printList(Node *node, int size) {
-    node = node->next;
     while (node != NULL) {
-        printf("%s\n", node->value);
+        printf("%s %p\n", node->value, node);
         node = node->next;
     }
     printf("size %d\n", size);
 
+}
+
+bool isBuiltIn(Node *node) {
+    if (node == NULL) {
+        return false;
+    }
+    char *builtIn[] = { "exit", "cd", "path" };
+    for (int i = 0; i < sizeof(builtIn)/sizeof(char*); i++) {
+        if (strcmp(node->value,builtIn[i]) == 0) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void executeLine(FILE *stream) {
@@ -76,14 +83,19 @@ void executeLine(FILE *stream) {
         Node sentinel = { "" };
         int size = 0;
         createLinkedList(split, &sentinel, &size);
+        sentinel = *sentinel.next;
         printList(&sentinel, size);
+        if (isBuiltIn(&sentinel)) {
+            printf("is built in\n");
+        } else {
+            printf("not built in\n");
+        }
 
 
         // once get command, if built in command
         // call own function, else execute from bin
 
-        // iterate through paths, if successful
-        // execute binaries
+        // iterate through paths, if successful, execute binaries
         // +1 for '\0' character
         char command[strlen(pathOne)+strlen(fslash)+strlen(split)+1];
         getCommand(command, pathOne, split);
