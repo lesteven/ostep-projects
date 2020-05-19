@@ -29,7 +29,7 @@ void trimStr(char str[]) {
         }
     }
 }
-
+/*
 void createLinkedList(char *command, Node *sentinel, int *size) {
     char *sep = NULL;
     *size = 0;
@@ -42,14 +42,50 @@ void createLinkedList(char *command, Node *sentinel, int *size) {
         *size += 1;
         Node *newNode = malloc(sizeof(*sentinel));
         newNode->value = sep;
+        printf("print word: %s\n", newNode->value);
         sentinel->next = newNode;
         sentinel = newNode;
+    }
+}
+*/
+void createLinkedList(char *command, Node *sentinel, int *size) {
+    *size = 0;
+
+    int start = -1;
+    for (int i = 0; i < strlen(command); i++) {
+        if (command[i] == ' ' || command[i] == '\t') {
+            if (start > -1 && start < i) {
+                char *copy = malloc(i-start+1);
+                strncpy(copy, command+start, i-start);
+                //printf("%d %d %s\n", start, i, copy);
+
+                Node *newNode = malloc(sizeof(*sentinel));
+                newNode->value = copy;
+                //printf("print word: %s\n", newNode->value);
+                sentinel->next = newNode;
+                sentinel = newNode;
+                *size +=1;
+                start = -1;
+            }
+        } else if (start == -1) {
+            start = i;
+        }
+    }
+    if (start != -1) {
+        char *copy = malloc(strlen(command)-start+1);
+        strncpy(copy, command+start, strlen(command)-start);
+        Node *newNode = malloc(sizeof(*sentinel));
+        newNode->value = copy;
+        //printf("print word: %s\n", newNode->value);
+        sentinel->next = newNode;
+        *size +=1;
     }
 }
 
 void printList(Node *node, int size) {
     while (node != NULL) {
-        printf("%s %p\n", node->value, node);
+        //printf("printing: %s %p\n", node->value, node);
+        printf("printing: %s\n", node->value);
         node = node->next;
     }
     printf("size %d\n", size);
@@ -85,15 +121,15 @@ void executeLine(FILE *stream) {
         createLinkedList(split, &sentinel, &size);
         sentinel = *sentinel.next;
         printList(&sentinel, size);
-        if (isBuiltIn(&sentinel)) {
-            printf("is built in\n");
-        } else {
-            printf("not built in\n");
-        }
-
 
         // once get command, if built in command
-        // call own function, else execute from bin
+        if (isBuiltIn(&sentinel)) {
+            // call own function
+            printf("is built in\n");
+        } else {
+            // execute from bin
+            printf("not built in\n");
+        }
 
         // iterate through paths, if successful, execute binaries
         // +1 for '\0' character
