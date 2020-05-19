@@ -29,25 +29,7 @@ void trimStr(char str[]) {
         }
     }
 }
-/*
-void createLinkedList(char *command, Node *sentinel, int *size) {
-    char *sep = NULL;
-    *size = 0;
-    while (command != NULL) {
-        sep = strsep(&command, " ");
-        if (strlen(sep) == 0) {
-            continue;
-        }
-        //Node next = Node { sep };
-        *size += 1;
-        Node *newNode = malloc(sizeof(*sentinel));
-        newNode->value = sep;
-        printf("print word: %s\n", newNode->value);
-        sentinel->next = newNode;
-        sentinel = newNode;
-    }
-}
-*/
+
 void createLinkedList(char *command, Node *sentinel, int *size) {
     *size = 0;
 
@@ -105,6 +87,17 @@ bool isBuiltIn(Node *node) {
     return false;
 }
 
+void executeBuiltIn(Node *node, int size) {
+    if (strcmp(node->value, "exit") == 0) {
+        printf("exiting\n");
+    } else if (strcmp(node->value, "cd") == 0) {
+        printf("cding\n");
+    } else if (strcmp(node->value, "path") == 0) {
+        printf("pathing\n");
+    }
+
+}
+
 void executeLine(FILE *stream) {
     char *line = NULL;
     size_t size = 0;
@@ -119,18 +112,19 @@ void executeLine(FILE *stream) {
         Node sentinel = { "" };
         int size = 0;
         createLinkedList(split, &sentinel, &size);
-        sentinel = *sentinel.next;
-        printList(&sentinel, size);
+        Node command = *sentinel.next;
+        //printList(&sentinel, size);
 
         // once get command, if built in command
-        if (isBuiltIn(&sentinel)) {
+        if (isBuiltIn(&command)) {
             // call own function
             printf("is built in\n");
+            executeBuiltIn(&command, size);
         } else {
             // execute from bin
             printf("not built in\n");
         }
-
+/*
         // iterate through paths, if successful, execute binaries
         // +1 for '\0' character
         char command[strlen(pathOne)+strlen(fslash)+strlen(split)+1];
@@ -150,6 +144,7 @@ void executeLine(FILE *stream) {
             // child process created successfully
             execv(command, files);
         }
+        */
     }
     // wait for children to be done and return to parent
     while (wait(NULL) != -1) {
