@@ -10,8 +10,8 @@ typedef struct Node {
     struct Node *next;
 } Node;
 
-char pathOne[] = "/bin";
-char pathTwo[] = "/usr/bin";
+Node pathTwo = { "/usr/bin" };
+Node pathHead = { "/bin", &pathTwo };
 char fslash[] = "/";
 
 void getCommand(char *command, char *path, char *split) {
@@ -87,15 +87,54 @@ bool isBuiltIn(Node *node) {
     return false;
 }
 
+void forkExec(char *command) {
+    char *files[] = { command, NULL };
+    pid_t fork_id = fork();
+    //printf("starting %d\n", (int) getpid());
+    if (fork_id < 0) {
+        // error
+        char error_message[30] = "An error has occurred\n";
+        write(STDERR_FILENO, error_message, strlen(error_message));
+    } else if (fork_id == 0) {
+        // child process created successfully
+        execv(command, files);
+    }
+
+}
+
 void executeBuiltIn(Node *node, int size) {
     if (strcmp(node->value, "exit") == 0) {
-        printf("exiting\n");
+        if (size == 1) {
+            exit(0);
+        } else {
+            printf("exit does not take any arguments\n");
+        }
     } else if (strcmp(node->value, "cd") == 0) {
         printf("cding\n");
     } else if (strcmp(node->value, "path") == 0) {
         printf("pathing\n");
     }
 
+}
+
+void executeBin(Node *node, int size) {
+    Node *pathCopy = &pathHead;
+    // iterate through paths, if successful, execute binaries
+    while (pathCopy != NULL) {
+        printf("%s\n", pathCopy->value);
+
+        // +1 for '\0' character
+        char command[strlen(pathCopy->value)+strlen(fslash)+strlen(node->value)+1];
+        getCommand(command, pathCopy->value, node->value);
+        int available = access(command, X_OK);
+        if (available == 0) {
+            printf("is available\n");
+            break;
+        } else {
+            printf("not available\n");
+        }
+        pathCopy = pathCopy->next;
+    }
 }
 
 void executeLine(FILE *stream) {
@@ -123,28 +162,8 @@ void executeLine(FILE *stream) {
         } else {
             // execute from bin
             printf("not built in\n");
+            executeBin(&command, size);
         }
-/*
-        // iterate through paths, if successful, execute binaries
-        // +1 for '\0' character
-        char command[strlen(pathOne)+strlen(fslash)+strlen(split)+1];
-        getCommand(command, pathOne, split);
-
-
-        // int available = access(command, X_OK);
-
-        char *files[] = { split, NULL };
-        pid_t fork_id = fork();
-        //printf("starting %d\n", (int) getpid());
-        if (fork_id < 0) {
-            // error
-            char error_message[30] = "An error has occurred\n";
-            write(STDERR_FILENO, error_message, strlen(error_message));
-        } else if (fork_id == 0) {
-            // child process created successfully
-            execv(command, files);
-        }
-        */
     }
     // wait for children to be done and return to parent
     while (wait(NULL) != -1) {
