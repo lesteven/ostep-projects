@@ -92,8 +92,14 @@ bool isBuiltIn(Node *node) {
     return false;
 }
 
-void forkExec(char *command) {
-    char *files[] = { command, NULL };
+void forkExec(char *command, Node *node, int size) {
+    // add all linked list values to files; +1 for NULL
+    char *args[size+1];
+    for (int i = 0; i < size; i++) {
+        args[i] = node->value;
+        node = node->next;
+    }
+    args[size] = NULL;
     pid_t fork_id = fork();
     //printf("starting %d\n", (int) getpid());
     if (fork_id < 0) {
@@ -101,7 +107,7 @@ void forkExec(char *command) {
         writeError();
     } else if (fork_id == 0) {
         // child process created successfully
-        execv(command, files);
+        execv(command, args);
     }
 
 }
@@ -137,7 +143,7 @@ void executeBin(Node *node, int size) {
         int available = access(command, X_OK);
         if (available == 0) {
             //printf("is available\n");
-            forkExec(command);
+            forkExec(command, node, size);
             break;
         } else {
             writeError();
