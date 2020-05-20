@@ -115,11 +115,10 @@ void executeBuiltIn(Node *node, int size) {
         }
     } else if (strcmp(node->value, "cd") == 0) {
         if (size == 2) {
-
+            chdir(node->next->value);
         } else {
             writeError();
         }
-        printf("cding\n");
     } else if (strcmp(node->value, "path") == 0) {
         printf("pathing\n");
     }
@@ -179,7 +178,6 @@ void executeLine(FILE *stream) {
     // wait for children to be done and return to parent
     while (wait(NULL) != -1) {
     }
-
 }
 
 int main(int argc, char *argv[]) {
@@ -199,7 +197,6 @@ int main(int argc, char *argv[]) {
             writeError();
             exit(1);
         }
-
     }
 
     return 0;
