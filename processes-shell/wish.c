@@ -14,6 +14,11 @@ Node pathTwo = { "/usr/bin" };
 Node pathHead = { "/bin", &pathTwo };
 char fslash[] = "/";
 
+void writeError() {
+    char error_message[30] = "An error has occurred\n";
+    write(STDERR_FILENO, error_message, strlen(error_message));
+}
+
 void getCommand(char *command, char *path, char *split) {
     // add +1 -> copies '\n', prevents junk data from showing
     strncpy(command, path, strlen(path)+1);
@@ -93,8 +98,7 @@ void forkExec(char *command) {
     //printf("starting %d\n", (int) getpid());
     if (fork_id < 0) {
         // error
-        char error_message[30] = "An error has occurred\n";
-        write(STDERR_FILENO, error_message, strlen(error_message));
+        writeError();
     } else if (fork_id == 0) {
         // child process created successfully
         execv(command, files);
@@ -107,9 +111,14 @@ void executeBuiltIn(Node *node, int size) {
         if (size == 1) {
             exit(0);
         } else {
-            printf("exit does not take any arguments\n");
+            writeError();
         }
     } else if (strcmp(node->value, "cd") == 0) {
+        if (size == 2) {
+
+        } else {
+            writeError();
+        }
         printf("cding\n");
     } else if (strcmp(node->value, "path") == 0) {
         printf("pathing\n");
@@ -121,17 +130,19 @@ void executeBin(Node *node, int size) {
     Node *pathCopy = &pathHead;
     // iterate through paths, if successful, execute binaries
     while (pathCopy != NULL) {
-        printf("%s\n", pathCopy->value);
+        //printf("%s\n", pathCopy->value);
 
         // +1 for '\0' character
         char command[strlen(pathCopy->value)+strlen(fslash)+strlen(node->value)+1];
         getCommand(command, pathCopy->value, node->value);
         int available = access(command, X_OK);
         if (available == 0) {
-            printf("is available\n");
+            //printf("is available\n");
+            forkExec(command);
             break;
         } else {
-            printf("not available\n");
+            writeError();
+            break;
         }
         pathCopy = pathCopy->next;
     }
@@ -157,11 +168,11 @@ void executeLine(FILE *stream) {
         // once get command, if built in command
         if (isBuiltIn(&command)) {
             // call own function
-            printf("is built in\n");
+            //printf("is built in\n");
             executeBuiltIn(&command, size);
         } else {
             // execute from bin
-            printf("not built in\n");
+            //printf("not built in\n");
             executeBin(&command, size);
         }
     }
@@ -180,14 +191,12 @@ int main(int argc, char *argv[]) {
         }
 
     } else if (argc > 2) {
-        char error_message[30] = "An error has occurred\n";
-        write(STDERR_FILENO, error_message, strlen(error_message));
+        writeError();
     } else {
         // batch mode
         FILE *read_file = fopen(argv[1], "r");
         if (read_file == NULL) {
-            char error_message[30] = "An error has occurred\n";
-            write(STDERR_FILENO, error_message, strlen(error_message));
+            writeError();
             exit(1);
         }
 
