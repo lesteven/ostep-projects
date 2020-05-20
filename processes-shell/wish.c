@@ -196,6 +196,8 @@ int main(int argc, char *argv[]) {
         if (read_file == NULL) {
             writeError();
             exit(1);
+        } else {
+            executeLine(read_file);
         }
     }
 
