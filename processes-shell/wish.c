@@ -153,20 +153,17 @@ void executeBin(Node *node, int size) {
     }
 }
 
-void executeLine(FILE *stream) {
-    char *line = NULL;
-    size_t size = 0;
-    getline(&line, &size, stream);
+void executeLine(char *line) {
     char *split = NULL;
 
     while (line != NULL) {
         split = strsep(&line, "&");
-
+        //printf("execute %s\n", split);
         trimStr(split);
         // created linked list for commands and get size
         Node sentinel = { "" };
-        int size = 0;
-        createLinkedList(split, &sentinel, &size);
+        int sizeCommands = 0;
+        createLinkedList(split, &sentinel, &sizeCommands);
         Node command = *sentinel.next;
         //printList(&sentinel, size);
 
@@ -174,11 +171,11 @@ void executeLine(FILE *stream) {
         if (isBuiltIn(&command)) {
             // call own function
             //printf("is built in\n");
-            executeBuiltIn(&command, size);
+            executeBuiltIn(&command, sizeCommands);
         } else {
             // execute from bin
             //printf("not built in\n");
-            executeBin(&command, size);
+            executeBin(&command, sizeCommands);
         }
     }
     // wait for children to be done and return to parent
@@ -187,11 +184,15 @@ void executeLine(FILE *stream) {
 }
 
 int main(int argc, char *argv[]) {
+    char *line = NULL;
+    size_t size = 0;
+
     if (argc == 1) {
         // run interactive mode
         while (1) {
             printf("wish> ");
-            executeLine(stdin);
+            getline(&line, &size, stdin);
+            executeLine(line);
         }
 
     } else if (argc > 2) {
@@ -203,7 +204,9 @@ int main(int argc, char *argv[]) {
             writeError();
             exit(1);
         } else {
-            executeLine(read_file);
+            while (getline(&line, &size, read_file) != -1) {
+                executeLine(line);
+            }
         }
     }
 
