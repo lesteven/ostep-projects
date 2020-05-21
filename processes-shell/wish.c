@@ -11,7 +11,8 @@ typedef struct Node {
 } Node;
 
 Node pathTwo = { "/usr/bin" };
-Node pathHead = { "/bin", &pathTwo };
+Node pathOne = { "/bin", &pathTwo };
+Node *pathHead = &pathOne;
 char fslash[] = "/";
 
 void writeError() {
@@ -112,6 +113,7 @@ void forkExec(char *command, Node *node, int size) {
 
 }
 
+
 void executeBuiltIn(Node *node, int size) {
     if (strcmp(node->value, "exit") == 0) {
         if (size == 1) {
@@ -126,13 +128,17 @@ void executeBuiltIn(Node *node, int size) {
             writeError();
         }
     } else if (strcmp(node->value, "path") == 0) {
-        printf("pathing\n");
+        if (size == 1) {
+            pathHead = NULL;
+        } else {
+            pathHead = node->next;
+        }
     }
 
 }
 
 void executeBin(Node *node, int size) {
-    Node *pathCopy = &pathHead;
+    Node *pathCopy = pathHead;
     // iterate through paths, if successful, execute binaries
     while (pathCopy != NULL) {
         //printf("%s\n", pathCopy->value);
