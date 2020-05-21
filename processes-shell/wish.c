@@ -139,6 +139,9 @@ void executeBuiltIn(Node *node, int size) {
 
 void executeBin(Node *node, int size) {
     Node *pathCopy = pathHead;
+    if (pathCopy == NULL) {
+        writeError();
+    }
     // iterate through paths, if successful, execute binaries
     while (pathCopy != NULL) {
         //printf("%s\n", pathCopy->value);
