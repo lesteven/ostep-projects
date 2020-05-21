@@ -212,10 +212,9 @@ int main(int argc, char *argv[]) {
         if (read_file == NULL) {
             writeError();
             exit(1);
-        } else {
-            while (getline(&line, &size, read_file) != -1) {
-                executeLine(line);
-            }
+        }
+        while (getline(&line, &size, read_file) != -1) {
+            executeLine(line);
         }
     }
 
