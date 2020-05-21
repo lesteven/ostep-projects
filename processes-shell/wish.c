@@ -27,21 +27,12 @@ void getCommand(char *command, char *path, char *split) {
     strncat(command, split, strlen(split));
 }
 
-void trimStr(char str[]) {
-    for (int i = strlen(str)-1; i >=0; i--) {
-        if (str[i] == '\n') {
-            str[i] = '\0';
-            break;
-        }
-    }
-}
-
 void createLinkedList(char *command, Node *sentinel, int *size) {
     *size = 0;
 
     int start = -1;
     for (int i = 0; i < strlen(command); i++) {
-        if (command[i] == ' ' || command[i] == '\t') {
+        if (command[i] == ' ' || command[i] == '\t' || command[i] == '\n') {
             if (start > -1 && start < i) {
                 char *copy = malloc(i-start+1);
                 strncpy(copy, command+start, i-start);
@@ -58,15 +49,6 @@ void createLinkedList(char *command, Node *sentinel, int *size) {
         } else if (start == -1) {
             start = i;
         }
-    }
-    if (start != -1) {
-        char *copy = malloc(strlen(command)-start+1);
-        strncpy(copy, command+start, strlen(command)-start);
-        Node *newNode = malloc(sizeof(*sentinel));
-        newNode->value = copy;
-        //printf("print word: %s\n", newNode->value);
-        sentinel->next = newNode;
-        *size +=1;
     }
 }
 
@@ -168,7 +150,6 @@ void executeLine(char *line) {
     while (line != NULL) {
         split = strsep(&line, "&");
         //printf("execute %s\n", split);
-        trimStr(split);
         // created linked list for commands and get size
         Node sentinel = { "" };
         int sizeCommands = 0;
