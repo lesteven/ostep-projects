@@ -168,7 +168,10 @@ void executeLine(char *line) {
         int sizeCommands = 0;
         createLinkedList(firstCopy, &sentinel, &sizeCommands, NULL);
 
-        Node command = *sentinel.next;
+        Node command = sentinel;
+        if (command.next != NULL) {
+            command = *command.next;
+        }
         //printList(&command, sizeCommands);
 
         // handle redirect and files
