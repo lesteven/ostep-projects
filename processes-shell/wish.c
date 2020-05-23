@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <stdbool.h>
+#include <fcntl.h>
 
 typedef struct Node {
     char *value;
@@ -82,7 +83,7 @@ bool isBuiltIn(Node *node) {
     return false;
 }
 
-void forkExec(char *command, Node *node, int size) {
+void forkExec(char *command, Node *node, int size, Node *fileNode) {
     // add all linked list values to files; +1 for NULL
     char *args[size+1];
     for (int i = 0; i < size; i++) {
@@ -97,6 +98,13 @@ void forkExec(char *command, Node *node, int size) {
         writeError();
     } else if (fork_id == 0) {
         // child process created successfully
+
+        int redirect = 0;
+        if (fileNode != NULL) {
+            redirect = open(fileNode->value, O_RDWR|O_CREAT|O_TRUNC,0644);
+            dup2(redirect,  1);
+        }
+        close(redirect);
         execv(command, args);
     }
 
@@ -126,7 +134,7 @@ void executeBuiltIn(Node *node, int size) {
 
 }
 
-void executeBin(Node *node, int size) {
+void executeBin(Node *node, int size, Node *fileNode) {
     Node *pathCopy = pathHead;
     if (pathCopy == NULL) {
         writeError();
@@ -141,7 +149,7 @@ void executeBin(Node *node, int size) {
         int available = access(command, X_OK);
         if (available == 0) {
             //printf("is available\n");
-            forkExec(command, node, size);
+            forkExec(command, node, size, fileNode);
             break;
         } else {
             writeError();
@@ -164,26 +172,25 @@ void executeLine(char *line) {
         strncpy(firstCopy, firstCommand, strlen(firstCommand));
 
         // created linked list for commands and get size
-        Node sentinel = { "" };
+        Node command = { "" };
         int sizeCommands = 0;
-        createLinkedList(firstCopy, &sentinel, &sizeCommands, NULL);
+        createLinkedList(firstCopy, &command, &sizeCommands, NULL);
 
-        Node command = sentinel;
         if (command.next != NULL) {
             command = *command.next;
         }
         //printList(&command, sizeCommands);
 
         // handle redirect and files
-        Node fileSentinel = { "" };
+        Node fileNode = { "" };
         int sizeFiles = 0;
         int redirectCount = 1;
-        createLinkedList(split, &fileSentinel, &sizeFiles, &redirectCount);
+        createLinkedList(split, &fileNode, &sizeFiles, &redirectCount);
 
-        if (fileSentinel.next != NULL) {
-            fileSentinel = *fileSentinel.next;
+        if (fileNode.next != NULL) {
+            fileNode = *fileNode.next;
         }
-        //printList(&fileSentinel, sizeFiles);
+        //printList(&fileNode, sizeFiles);
         if (split != NULL && (redirectCount > 1 || sizeFiles != 1)) {
             writeError();
             return;
@@ -195,7 +202,7 @@ void executeLine(char *line) {
             executeBuiltIn(&command, sizeCommands);
         } else {
             // execute from bin
-            executeBin(&command, sizeCommands);
+            executeBin(&command, sizeCommands, &fileNode);
         }
     }
     // wait for children to be done and return to parent
