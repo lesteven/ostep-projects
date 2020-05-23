@@ -27,7 +27,7 @@ void getCommand(char *command, char *path, char *split) {
     strncat(command, split, strlen(split));
 }
 
-void createLinkedList(char *command, Node *sentinel, int *size) {
+void createLinkedList(char *command, Node *sentinel, int *size, int *redirectCount) {
     if (command == NULL) {
         return;
     }
@@ -52,6 +52,9 @@ void createLinkedList(char *command, Node *sentinel, int *size) {
             }
         } else if (start == -1) {
             start = i;
+        }
+        if (redirectCount != NULL && command[i] == '>') {
+            redirectCount++;
         }
     }
 }
@@ -163,7 +166,7 @@ void executeLine(char *line) {
         // created linked list for commands and get size
         Node sentinel = { "" };
         int sizeCommands = 0;
-        createLinkedList(firstCopy, &sentinel, &sizeCommands);
+        createLinkedList(firstCopy, &sentinel, &sizeCommands, NULL);
 
         Node command = *sentinel.next;
         //printList(&command, sizeCommands);
@@ -171,17 +174,9 @@ void executeLine(char *line) {
         // handle redirect and files
         Node fileSentinel = { "" };
         int sizeFiles = 0;
-        createLinkedList(split, &fileSentinel, &sizeFiles);
+        int redirectCount = 1;
+        createLinkedList(split, &fileSentinel, &sizeFiles, &redirectCount);
 
-        int redirectCount = 0;
-        if (split != NULL) {
-            redirectCount++;
-            for (int i = 0; i < strlen(split); i++) {
-                if (split[i] == '>') {
-                    redirectCount++;
-                }
-            }
-        }
         if (fileSentinel.next != NULL) {
             fileSentinel = *fileSentinel.next;
         }
