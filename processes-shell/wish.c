@@ -143,27 +143,29 @@ void executeBin(Node *node, int size, Node *fileNode) {
     Node *pathCopy = pathHead;
     if (pathCopy == NULL) {
         writeError();
+        return;
     }
     if (size == 0) {
         return;
     }
     // iterate through paths, if successful, execute binaries
+    int available = -1;
     while (pathCopy != NULL) {
         //printf("%s\n", pathCopy->value);
 
         // +1 for '\0' character
         char command[strlen(pathCopy->value)+strlen(fslash)+strlen(node->value)+1];
         getCommand(command, pathCopy->value, node->value);
-        int available = access(command, X_OK);
+        available = access(command, X_OK);
         if (available == 0) {
             //printf("is available\n");
             forkExec(command, node, size, fileNode);
-            break;
-        } else {
-            writeError();
-            break;
+            return;
         }
         pathCopy = pathCopy->next;
+    }
+    if (available != 0) {
+        writeError();
     }
 }
 
