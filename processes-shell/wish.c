@@ -63,7 +63,12 @@ void createLinkedList(char *command, Node *sentinel, int *size, int *redirectCou
 void printList(Node *node, int size) {
     while (node != NULL) {
         //printf("printing: %s %p\n", node->value, node);
-        printf("printing: %s\n", node->value);
+        printf("printing: %s ", node->value);
+        /*
+        for (int i = 0; i < strlen(node->value); i++) {
+            printf(" %d ", node->value[i]);
+        }
+        */
         node = node->next;
     }
     printf("size %d\n", size);
@@ -139,6 +144,9 @@ void executeBin(Node *node, int size, Node *fileNode) {
     if (pathCopy == NULL) {
         writeError();
     }
+    if (size == 0) {
+        return;
+    }
     // iterate through paths, if successful, execute binaries
     while (pathCopy != NULL) {
         //printf("%s\n", pathCopy->value);
@@ -180,6 +188,7 @@ void executeLine(char *line) {
             command = *command.next;
         }
         //printList(&command, sizeCommands);
+        //printf("end==============\n");
 
         // handle redirect and files
         Node fileNode = { "" };
