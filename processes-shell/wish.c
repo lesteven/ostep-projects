@@ -101,7 +101,7 @@ void forkExec(char *command, Node *node, int size, Node *fileNode) {
 
         int redirect = 0;
         if (fileNode != NULL) {
-            redirect = open(fileNode->value, O_RDWR|O_CREAT|O_TRUNC,0644);
+            redirect = open(fileNode->value, O_RDWR|O_CREAT|O_TRUNC,0666);
             dup2(redirect,  1);
         }
         close(redirect);
@@ -191,7 +191,8 @@ void executeLine(char *line) {
             fileNode = *fileNode.next;
         }
         //printList(&fileNode, sizeFiles);
-        if (split != NULL && (redirectCount > 1 || sizeFiles != 1)) {
+        if ((split != NULL && (redirectCount > 1 || sizeFiles != 1))
+                || (sizeCommands == 0 && strcmp(fileNode.value,"") != 0)) {
             writeError();
             return;
         }
@@ -224,6 +225,7 @@ int main(int argc, char *argv[]) {
 
     } else if (argc > 2) {
         writeError();
+        exit(1);
     } else {
         // batch mode
         FILE *read_file = fopen(argv[1], "r");
