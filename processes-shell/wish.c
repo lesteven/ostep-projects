@@ -28,11 +28,15 @@ void getCommand(char *command, char *path, char *split) {
 }
 
 void createLinkedList(char *command, Node *sentinel, int *size) {
+    if (command == NULL) {
+        return;
+    }
     *size = 0;
-
     int start = -1;
+
     for (int i = 0; i < strlen(command); i++) {
-        if (command[i] == ' ' || command[i] == '\t' || command[i] == '\n') {
+        if (command[i] == ' ' || command[i] == '\t'
+                || command[i] == '\n' || command[i] == '>') {
             if (start > -1 && start < i) {
                 char *copy = malloc(i-start+1);
                 strncpy(copy, command+start, i-start);
@@ -43,7 +47,7 @@ void createLinkedList(char *command, Node *sentinel, int *size) {
                 //printf("print word: %s\n", newNode->value);
                 sentinel->next = newNode;
                 sentinel = newNode;
-                *size +=1;
+                *size += 1;
                 start = -1;
             }
         } else if (start == -1) {
@@ -149,22 +153,50 @@ void executeLine(char *line) {
 
     while (line != NULL) {
         split = strsep(&line, "&");
-        //printf("execute %s\n", split);
+
+        // copy string and null terminate it
+        char *firstCommand = strsep(&split, ">");
+        char firstCopy[strlen(firstCommand)+1];
+        memset(firstCopy, '\n', strlen(firstCommand)+1);
+        strncpy(firstCopy, firstCommand, strlen(firstCommand));
+
         // created linked list for commands and get size
         Node sentinel = { "" };
         int sizeCommands = 0;
-        createLinkedList(split, &sentinel, &sizeCommands);
+        createLinkedList(firstCopy, &sentinel, &sizeCommands);
+
         Node command = *sentinel.next;
-        //printList(&sentinel, size);
+        //printList(&command, sizeCommands);
+
+        // handle redirect and files
+        Node fileSentinel = { "" };
+        int sizeFiles = 0;
+        createLinkedList(split, &fileSentinel, &sizeFiles);
+
+        int redirectCount = 0;
+        if (split != NULL) {
+            redirectCount++;
+            for (int i = 0; i < strlen(split); i++) {
+                if (split[i] == '>') {
+                    redirectCount++;
+                }
+            }
+        }
+        if (fileSentinel.next != NULL) {
+            fileSentinel = *fileSentinel.next;
+        }
+        //printList(&fileSentinel, sizeFiles);
+        if (split != NULL && (redirectCount > 1 || sizeFiles != 1)) {
+            writeError();
+            return;
+        }
 
         // once get command, if built in command
         if (isBuiltIn(&command)) {
             // call own function
-            //printf("is built in\n");
             executeBuiltIn(&command, sizeCommands);
         } else {
             // execute from bin
-            //printf("not built in\n");
             executeBin(&command, sizeCommands);
         }
     }
